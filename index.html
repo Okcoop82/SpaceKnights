@@ -95,6 +95,17 @@ a{color:var(--cyan)}
 .brand{font-family:var(--f-display);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:15px;margin:0;flex:1 1 auto;white-space:nowrap}
 .brand span{color:var(--amber)}
 .brand small{display:block;font-family:var(--f-mono);font-weight:400;letter-spacing:.06em;color:var(--dim);font-size:11px;text-transform:none}
+.sbtn{display:none;flex:none;align-items:center;justify-content:center;width:34px;height:30px;background:transparent;border:1px solid var(--seam);border-radius:3px;cursor:pointer;padding:0}
+.sbtn svg{width:14px;height:14px;stroke:var(--text);fill:none}
+@media (max-width:720px){
+ .bar.compact .wrap{flex-direction:row;align-items:center;gap:8px;padding-block:6px 0}
+ .bar.compact .brand,.bar.compact .search{display:none}
+ .bar.compact .row1{flex:none;margin-bottom:4px}
+ .bar.compact .mode button{padding:7px 8px;font-size:10px;letter-spacing:.08em}
+ .bar.compact .sbtn{display:inline-flex;margin-bottom:4px}
+ .bar.compact .tabs{flex:1 1 auto;min-width:0;margin:0}
+ .bar.compact .tabs a{padding:10px 9px 9px}
+}
 .mode{display:inline-flex;border:1px solid var(--seam);border-radius:3px;overflow:hidden}
 .mode button{font:600 12px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;background:transparent;color:var(--dim);border:0;padding:9px 14px;cursor:pointer}
 .mode button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink)}
@@ -324,6 +335,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
       <svg viewBox="0 0 16 16" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg>
       <input id="q" type="search" placeholder="Search rules: overwatch, armor, warp storm…" aria-label="Search rules" autocomplete="off">
     </div>
+    <button type="button" class="sbtn" id="sbtn" aria-label="Search rules"><svg viewBox="0 0 16 16" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg></button>
     <nav class="tabs" aria-label="Sections">
       <a href="#learn">Learn to play</a>
       <a href="#rules">Rules</a>
@@ -739,6 +751,11 @@ function renderRules(){
   $("#toc").innerHTML=`<h4>Contents</h4><ol>${list.map(r=>`<li><button type="button" data-toc="r-${r.id}"><span>§${r.code}</span>${r.title}</button></li>`).join("")}</ol>`;
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-toc]");if(!b)return;const el=document.getElementById(b.dataset.toc);if(!el)return;const bar=document.querySelector(".bar");const off=(bar?bar.getBoundingClientRect().bottom:0)+12;window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-off,behavior:"smooth"})});
+(function(){const bar=document.querySelector(".bar"),q=document.getElementById("q");let open=false;
+ const f=()=>{if(open||document.activeElement===q){bar.classList.remove("compact");return}const y=window.scrollY,c=bar.classList.contains("compact");if(window.innerWidth>720){bar.classList.remove("compact");return}if(!c&&y>120)bar.classList.add("compact");else if(c&&y<40)bar.classList.remove("compact")};
+ window.addEventListener("scroll",f,{passive:true});window.addEventListener("resize",f);
+ document.getElementById("sbtn").onclick=()=>{open=true;bar.classList.remove("compact");q.focus()};
+ q.addEventListener("blur",()=>{open=false;setTimeout(f,150)});f()})();
 (function(){const t=document.getElementById("totop");const f=()=>t.classList.toggle("show",window.scrollY>400);window.addEventListener("scroll",f,{passive:true});f();t.onclick=()=>{window.scrollTo({top:0,behavior:"smooth"});const h=document.querySelector(".bar a,.bar button");if(h)h.focus({preventScroll:true})}})();
 function renderGaps(){
   const lab={done:["Resolved","var(--ok)"],review:["Under review","var(--amber)"],open:["Undefined","var(--alert)"],playtest:["Playtest","var(--cyan)"]};
