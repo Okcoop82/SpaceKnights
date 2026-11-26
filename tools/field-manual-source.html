@@ -90,6 +90,17 @@ td{padding:7px 10px;border-bottom:1px solid rgba(36,51,68,.6);vertical-align:top
 td.num,th.num{text-align:right;font-family:var(--f-mono)}
 td.mono{font-family:var(--f-mono);color:var(--amber);white-space:nowrap}
 body.sk td.mono{color:var(--cyan)}
+.toc{background:var(--hull);border:1px solid var(--seam);border-radius:4px;padding:12px 14px;margin-bottom:18px}
+.toc h4{margin:0 0 8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px 14px}
+.toc button{all:unset;cursor:pointer;display:flex;gap:8px;align-items:baseline;padding:5px 2px;color:var(--text);font-size:14px;width:100%;box-sizing:border-box}
+.toc button span{font:500 11px var(--f-mono);color:var(--amber);min-width:38px;flex:none}
+.toc button:hover,.toc button:focus-visible{color:var(--amber);outline:none}
+.toc button:focus-visible{box-shadow:0 0 0 2px var(--amber)}
+.panel[id^="r-"]{scroll-margin-top:170px}
+.totop{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;width:48px;height:48px;border-radius:50%;border:1px solid var(--amber);background:var(--hull);color:var(--amber);font:600 20px var(--f-mono);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s}
+.totop.show{opacity:1;pointer-events:auto;transform:none}
+.totop:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:18px}
 .qcard{background:var(--hull);border:1px solid var(--seam);border-radius:4px;padding:12px 14px}
 .qcard h4{margin:0 0 6px}
@@ -208,7 +219,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
 #imp{min-height:70px;font-family:var(--f-mono);font-size:12px}
 @media print{
   :root{--void:#fff;--hull:#fff;--hull-2:#fff;--seam:#999;--text:#111;--dim:#444;--amber:#111;--cyan:#111;--alert:#b00;--ok:#060;color-scheme:light}
-  body::before,.bar{display:none!important}
+  body::before,.bar,.totop,.toc{display:none!important}
   body[data-print="army"] main>section:not(#v-army),body[data-print="army"] #v-army>*:not(#sheet-wrap),body[data-print="army"] #sheet-wrap>*:not(#sheet){display:none!important}
   body[data-print="army"] #v-army{display:block!important}
   body[data-print="scen"] main>section:not(#v-scen),body[data-print="scen"] #v-scen>*:not(#scen-sheet){display:none!important}
@@ -288,6 +299,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
     <span class="modetag" data-modetag></span>
     <h2>Rules reference</h2>
     <p class="lede">Every rule from the current documents. Red boxes mark things the rules don't define yet.</p>
+    <nav class="toc" id="toc" aria-label="Rules contents"></nav>
     <div class="quick" id="quick"></div>
     <div class="stack" id="rulelist"></div>
   </section>
@@ -464,6 +476,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
     <div class="stack" id="gaplist"></div>
   </section>
 </main>
+<button type="button" class="totop" id="totop" aria-label="Back to top" title="Back to top">↑</button>
 
 <script>
 (function(){
@@ -671,7 +684,11 @@ function renderRules(){
   }
   $("#rulelist").innerHTML=n?out:`<p class="nores">No rules mention “${term.replace(/[<>&]/g,"")}”. Try another word.</p>`;
   $("#quick").hidden=!!term;
+  $("#toc").hidden=!!term;
+  $("#toc").innerHTML=`<h4>Contents</h4><ol>${list.map(r=>`<li><button type="button" data-toc="r-${r.id}"><span>§${r.code}</span>${r.title}</button></li>`).join("")}</ol>`;
 }
+document.addEventListener("click",e=>{const b=e.target.closest("[data-toc]");if(!b)return;const el=document.getElementById(b.dataset.toc);if(!el)return;const bar=document.querySelector(".bar");const off=(bar?bar.getBoundingClientRect().bottom:0)+12;window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-off,behavior:"smooth"})});
+(function(){const t=document.getElementById("totop");const f=()=>t.classList.toggle("show",window.scrollY>400);window.addEventListener("scroll",f,{passive:true});f();t.onclick=()=>{window.scrollTo({top:0,behavior:"smooth"});const h=document.querySelector(".bar a,.bar button");if(h)h.focus({preventScroll:true})}})();
 function renderGaps(){
   const lab={done:["Resolved","var(--ok)"],review:["Under review","var(--amber)"],open:["Undefined","var(--alert)"],playtest:["Playtest","var(--cyan)"]};
   $("#gaplist").innerHTML=GAPS.map(([t,d,s],i)=>`<article class="panel"><header><h3>${t}</h3><span class="only" style="color:${lab[s][1]};border-color:${lab[s][1]}">${lab[s][0]}</span></header><p>${d}</p></article>`).join("");
