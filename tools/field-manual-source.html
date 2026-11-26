@@ -252,7 +252,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
 <div class="bar">
   <div class="wrap">
     <div class="row1">
-      <h1 class="brand">Space <span>Knights</span><small id="verline">Field Manual · Core v3.17 + Skirmish v1.16</small></h1>
+      <h1 class="brand">Space <span>Knights</span><small id="verline">Field Manual · Core v3.18 + Skirmish v1.17</small></h1>
       <div class="mode" role="group" aria-label="Ruleset">
         <button id="m-core" aria-pressed="true">Core</button>
         <button id="m-sk" aria-pressed="false">Skirmish</button>
@@ -562,9 +562,9 @@ const R=[
   <h4>Orders</h4>${mode==="core"?tbl(["Order","Effect"],[
    ["Follow Me!",'All Infantry within 3" Charge. The Leader must charge. Overwatch hits the Leader first. Charging models get +1 Melee die and +1 Melee Power.'],
    ["Volley Fire!","One Infantry unit gets +1 Ranged die per model."],
-   ["Take Cover!","One Infantry unit: ranged attacks against it need +1 to hit (Armor +1) until next turn."],
-   ["Hold the Line!","Melee attacks against the unit need +1 to hit (Armor +1). It can't Fall Back or become Scattered until end of round."],
-   ["Double Time!",'Move up to 3", not ending within 1" of an enemy. May still activate normally.']]):tbl(["Order","Effect"],[
+   ["Take Cover!","One Infantry unit: ranged attacks against it need +1 to hit (Armor +1) until the start of its next activation."],
+   ["Hold the Line!","One Infantry unit: melee attacks against it need +1 to hit (Armor +1). It can't Fall Back or become Scattered until end of round."],
+   ["Double Time!",'One unit moves up to 3", not ending within 1" of an enemy. May still activate normally.']]):tbl(["Order","Effect"],[
    ["Follow Me!",'The Leader and all friendly Infantry or Space Knight models within 3" that haven\'t activated Charge. The Leader must charge. Overwatch must target the Leader first. Each charger gets +1 Melee die and +1 Melee Power.'],
    ["Volley Fire!","One Infantry or Space Knight model gets +1 Ranged die."],
    ["Take Cover!","One Infantry or Space Knight model: ranged attacks against it need Armor +1 until the start of its next activation."],
@@ -631,7 +631,7 @@ function steps(){
    ["Activate a "+U(),`Each activation has three phases:<ol><li><b>Orders / Warp</b> (optional): a Leader gives an Order or a Wizard casts. You can do this after moving instead.</li><li><b>Movement</b>: Move (up to Movement, not ending within 1" of an enemy), Charge (+2", end within 1"), or Fall Back.</li><li><b>Combat</b>: shoot <i>or</i> fight in melee.</li></ol>`],
    ["Shoot",c?`Roll Rate × models in the unit, add Power to each die, and every total that meets or beats the target's Armor is a hit. Each hit is 1 damage.<div class="example"><span class="code">Example</span>A 5-model unit with <b>Medium / Rapid / Heavy</b> shoots Heavy Armor (5+). It rolls 5 × 2 = <b>10 dice</b> at +1, so each die needs a 4 or better.<br><span class="dice"><span class="h">6</span> <span class="m">2</span> <span class="h">4</span> <span class="h">5</span> <span class="m">1</span> <span class="m">3</span> <span class="h">6</span> <span class="m">3</span> <span class="h">4</span> <span class="m">2</span></span> → <b>5 hits, 5 damage</b>.</div>`:`Roll dice equal to Rate, add Power to each die, and every total that meets or beats the target's Armor is a hit. Each hit is 1 damage, and extra damage past 0 Health is lost.<div class="example"><span class="code">Example</span>A model with <b>Medium / Rapid / Heavy</b> shoots a Heavy Armor (5+) model with 2 Health. It rolls <b>2 dice</b> at +1, needing a 4 or better.<br><span class="dice"><span class="h">5</span> <span class="m">3</span></span> → <b>1 hit</b>. The target drops to 1 Health.</div>`],
    ["Charge and react",`Declare a Charge. The target may fire Overwatch at −2 before you move. Then move up to Movement +2" and fight. Only you roll; the enemy hits back on its own activation.<div class="example"><span class="code">Example</span>Overwatch with Standard Power (+0) against Heavy Armor (5+) needs a total of 7. Only a natural 6 hits, because a natural 6 always hits. Check the Hit odds tab for any matchup.</div>`],
-   ["Use your Leader",`Once per activation, your Leader can give one Order to a friendly ${U()} that hasn't activated, within 3" (12" with Radios). <b>Take Cover!</b> makes a ${mode==="core"?"unit":"model"} harder to shoot: its Armor number goes up by 1 against ranged attacks ${mode==="core"?"until next turn":"until its next activation"}, so Light 4+ becomes 5+. <b>Follow Me!</b> launches a group charge with +1 die and +1 Power.`],
+   ["Use your Leader",`Once per activation, your Leader can give one Order to a friendly ${U()} that hasn't activated, within 3" (12" with Radios). <b>Take Cover!</b> makes a ${mode==="core"?"unit":"model"} harder to shoot: its Armor number goes up by 1 against ranged attacks until the start of its next activation, so Light 4+ becomes 5+. <b>Follow Me!</b> launches a group charge with +1 die and +1 Power.`],
    ["Win",`Usually by <b>Broken Forces</b>: destroy half the enemy's ${c?"force":"models"} <i>and</i> their Leader. Scenarios can set other goals.`]
   ];
 }
@@ -830,7 +830,7 @@ function renderSheet(st){
    ${k.special?`<div class="sp">${escH(k.special)}</div>`:""}
    <div class="track">DMG ${"□".repeat(Math.min(k.health*m,30))}</div></div>`};
   const items=ARMY.entries.map(e=>[cardById(e.id),e.qty]).filter(x=>x[0]);
-  $("#sheet").innerHTML=`<div class="sh"><div><h3>${escH(ARMY.name||"Unnamed force")}</h3><div class="meta">Space Knights ${c?"Core v3.17 · "+st.units+" units, "+st.models+" models":"Skirmish v1.16 · "+st.models+" models"} · <b>${st.pts} / ${getLimit()} pts</b> · Leader ${st.leaders===1?"✓":"needed"}</div></div><div class="meta">Natural 6 always hits · Reactions −2<br>Armor: None 3+ · Light 4+ · Heavy 5+</div></div>
+  $("#sheet").innerHTML=`<div class="sh"><div><h3>${escH(ARMY.name||"Unnamed force")}</h3><div class="meta">Space Knights ${c?"Core v3.18 · "+st.units+" units, "+st.models+" models":"Skirmish v1.17 · "+st.models+" models"} · <b>${st.pts} / ${getLimit()} pts</b> · Leader ${st.leaders===1?"✓":"needed"}</div></div><div class="meta">Natural 6 always hits · Reactions −2<br>Armor: None 3+ · Light 4+ · Heavy 5+</div></div>
   ${items.length?`<div class="sgrid">${items.map(([k,q])=>blk(k,q)).join("")}</div>`:`<p class="code">Add cards above to fill the sheet.</p>`}`;
 }
 function armyText(){
