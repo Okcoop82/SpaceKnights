@@ -274,7 +274,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
 <div class="bar">
   <div class="wrap">
     <div class="row1">
-      <h1 class="brand">Space <span>Knights</span><small id="verline">Field Manual · Core v3.18 + Skirmish v1.17</small></h1>
+      <h1 class="brand">Space <span>Knights</span><small id="verline">Field Manual · Core v3.19 + Skirmish v1.18</small></h1>
       <div class="mode" role="group" aria-label="Ruleset">
         <button id="m-core" aria-pressed="true">Core</button>
         <button id="m-sk" aria-pressed="false">Skirmish</button>
@@ -517,7 +517,7 @@ const note=t=>`<span class="note">${t}</span>`;
 const R=[
  {id:"setup",code:"01",title:"Setup",
   core:`<ol><li>Set up terrain: take turns placing pieces and naming traits, unless the scenario sets it.</li><li>Roll for initiative. The winner chooses which side to start from or to deploy first.</li><li>Declare which model is your Leader.</li><li>Take turns deploying units into your deployment zones until all units are deployed.</li></ol><p>Force size is set by the scenario or by points: 500 (small), 1000 (standard), or 1500 (large). See Building your force.</p>`,
-  sk:`<ol><li>Set up terrain: take turns placing pieces and naming traits, unless the scenario sets it.</li><li>Roll for initiative. The winner chooses which side to start from or to deploy first.</li><li>Take turns deploying one model at a time into your deployment zones until all models are deployed.</li><li>Each player declares which model is their Leader.</li></ol><p>Each game is a clean reset. Nothing carries over between games: no injuries, experience, or gear.</p>`},
+  sk:`<ol><li>Set up terrain: take turns placing pieces and naming traits, unless the scenario sets it.</li><li>Roll for initiative. The winner chooses which side to start from or to deploy first.</li><li>Each player declares which model is their Leader.</li><li>Take turns deploying one model at a time into your deployment zones until all models are deployed.</li></ol><p>Each game is a clean reset. Nothing carries over between games: no injuries, experience, or gear.</p>`},
  {id:"force",code:"02",title:"Building your force",
   both:()=>{const c=mode==="core";return `${c?`<p>Players agree on a points limit: <b>500</b> (small), <b>1000</b> (standard), or <b>1500</b> (large). A unit costs its per-model points × its models, plus once-per-unit extras.</p>`:`<ul><li>A warband is <b>5–15 models</b>, built to an agreed points limit: <b>150</b> (small), <b>200</b> (standard), or <b>300</b> (large).</li><li>Every model has its own stat sheet (use the Card builder).</li><li>Exactly one Leader: a single model of any base type.</li></ul>`}
   <h4>Points per model</h4><p>1 + Health × Armor value + Movement + each ranged weapon + Melee.</p>
@@ -540,7 +540,7 @@ const R=[
   both:()=>`${tbl(["Movement","Distance"],T.move.map(([a,b])=>[a,b+'"']))}
   <h4>Move</h4><p>Move up to your Movement distance in any direction. You may pass within 1" of an enemy but can't end your move within 1" of one; only a Charge starts melee. A ${U()} that starts its activation engaged can't Move: it must Fall Back or stay and fight.</p>
   ${mode==="core"?`<h4>Coherency</h4><p>After any move (Move, Charge, Fall Back, or Double Time!), each model in a unit must be within 2" of at least one other model in the same unit.</p>`:""}
-  <h4>Charge</h4><p>Move your Movement +2", ending within 1" of the target${mode==="sk"?" model":""}. The target may fire <b>Overwatch</b> (a reaction shot at −2), declared after the charge is announced and resolved before the charge move. Then resolve melee.</p>
+  <h4>Measuring</h4><p>Players may measure any distance at any time.</p><h4>Charge</h4><p>You may only declare a Charge against an enemy ${U()} within your Movement +2", so charges never fail. Move up to Movement +2", ending within 1" of the target. The target may fire <b>Overwatch</b> (a reaction shot at −2) each time it is charged, unless it is already engaged. It is declared after the charge is announced and resolved before the charge move. Then resolve melee.</p>
   ${mode==="core"?`<h4>Fall Back</h4><p>Move full speed to leave melee. The unit's melee opponent may take one reaction shot at −2. A unit that Falls Back can't shoot that activation.</p>`:`<h4>Fall Back</h4><p>A model engaged in melee (within 1" of an enemy) may move full speed to disengage. One enemy model it was engaged with (its controller picks) may take a reaction shot at −2. A model that Falls Back can't shoot that activation.</p>`}`},
  {id:"combat",code:"06",title:"Combat",
   both:()=>`<h4>Rolling attacks</h4><ol>
@@ -552,9 +552,9 @@ const R=[
   <li><b>A natural 6 always hits</b>, whatever the modifiers. No attack is ever impossible.</li>
   <li>Each hit does 1 damage, whatever the weapon. Power changes the chance to hit, not damage.</li></ol>
   ${mode==="core"?`<p>All dice are rolled and resolved, whatever the size of the target unit. Model count doesn't change Armor.</p><h4>Damage and removal</h4><p>Each model has its own Health. The unit's controller assigns hits one model at a time and must finish a damaged model before starting another. Remove a model when its damage equals its Health; leftover hits carry over to the next model in the unit. The Leader always takes damage last. Fewer models means fewer attack dice. If removals break coherency, restore it with the unit's next move.</p>`:`<p>A model is removed at 0 Health. Extra hits are lost; there is no spillover to other models.</p>`}
-  <h4>Melee</h4><p>Uses the ${U()}'s Melee Rate and Power, against an enemy engaged with the attacker (within 1").</p><p><b>Melee is one-sided.</b> Only the active ${U()} attacks. The enemy doesn't strike back; it fights when it activates, by attacking in melee or Falling Back.</p><p><b>No shooting while engaged.</b> An engaged ${U()} can't make ranged attacks; it must fight in melee or Fall Back.</p>
+  <h4>Melee</h4><p>Uses the ${U()}'s Melee Rate and Power, against an enemy engaged with the attacker. ${mode==="core"?"A unit is <b>engaged</b> when any of its models is within 1\" of an enemy unit.":"A model is <b>engaged</b> when it is within 1\" of an enemy model."}</p><p><b>Close in.</b> Before rolling melee dice (after a Charge, on a later activation, or when the charged side fights back), ${mode==="core"?"each model in the attacking unit may move up to 2\" to get within 1\" of an enemy model, keeping 2\" coherency. Only models within 1\" of an enemy roll.":"the attacking model may move up to 2\" to get within 1\" of an enemy model. It only rolls if it is within 1\"."}</p><p><b>Melee is one-sided.</b> Only the active ${U()} attacks. The enemy doesn't strike back; it fights when it activates, by attacking in melee or Falling Back.</p><p><b>No shooting while engaged.</b> An engaged ${U()} can't make ranged attacks; it must fight in melee or Fall Back.</p>
   <h4>Danger Close</h4><p>When shooting at an enemy in melee with your own ${U()}, roll a d6 for each hit:</p>${tbl(["Roll","Result"],[["1–3","Hits the enemy"],["4–6","Hits your "+U()]])}
-  <h4>Reaction shots</h4><p><b>Overwatch</b> (when charged) and <b>Fall Back</b> shots are at <b>−2</b> to the attack roll.</p>
+  <h4>Reaction shots</h4><p><b>Overwatch</b> (each time it is charged, unless already engaged) and <b>Fall Back</b> shots are at <b>−2</b> to the attack roll.</p>
   <h4>Scattered</h4><p>A Scattered ${U()} can't move, shoot, charge, fight, cast, take reactions, or receive Orders, and its Armor is reduced by 1. Its next activation is spent regrouping; at the end of that activation, Scattered clears. Hold the Line! prevents it.</p>${note("Because a natural 6 always hits, a reaction shot always has at least a 1 in 6 chance per die.")}`},
  {id:"los",code:"06b",title:"Line of sight and targeting",
   both:()=>`<p><b>Seeing a target:</b> draw a straight line from any point of the shooter's base to any point of the target's base. If it doesn't cross another model's base or Blocking terrain, the shooter can see the target.</p>
@@ -579,26 +579,26 @@ const R=[
   both:()=>`<p>No named weapons. Pick one value from each table, in any combination. Write it as Range / Rate / Power, for example "Medium / Rapid / Heavy".</p>
   <p>Melee uses the same Rate and Power tiers, with no Range. Write it as Rate / Power, for example "Rapid / Heavy".</p><div class="grid2">${tbl(["Range",'Distance'],T.range.map(([a,b])=>[a,b+'"']))}${tbl(["Rate",mode==="core"?"Shots per model":"Dice"],T.rate)}${tbl(["Power","Modifier"],T.power.map(([a,b])=>[a,"+"+b]))}</div>`},
  {id:"leaders",code:"09",title:"Leaders and Orders",
-  both:()=>`<ul><li>${mode==="core"?"One Order per turn to one friendly unit that hasn't activated.":"In its Orders phase, the Leader may give one Order to one friendly model that hasn't activated this round."}</li>
+  both:()=>`<ul><li>${mode==="core"?"In its Orders/Warp phase, the Leader may give one Order to one other friendly unit that hasn't activated this round. It can't order itself or its own unit, except that Follow Me! includes them.":"In its Orders phase, the Leader may give one Order to one other friendly model that hasn't activated this round. It can't order itself, except that Follow Me! includes it."}</li>
   <li>Range 3", or 12" if both ${mode==="core"?"the Leader's retinue":"the Leader"} and the receiver have Radios. All Vehicles have radios.</li>
   <li>No Orders while engaged in melee.</li>
   <li>A Leader can't order Monsters, Vehicles, or Space Knights unless it is the same type. Monster, Vehicle, and Space Knight Leaders can also order Infantry.</li>
   ${mode==="core"?`<li>A Leader may be joined by a retinue of up to 4 other models, forming a squad.</li><li><b>Bodyguard:</b> in a retinue squad, the Leader is the last to take damage.</li>`:`<li>The Leader is a single model. No retinues and no Bodyguard rule.</li>`}</ul>
   <h4>Orders</h4>${mode==="core"?tbl(["Order","Effect"],[
-   ["Follow Me!",'All Infantry within 3" Charge. The Leader must charge. Overwatch hits the Leader first. Charging models get +1 Melee die and +1 Melee Power.'],
-   ["Volley Fire!","One Infantry unit gets +1 Ranged die per model."],
+   ["Follow Me!",'All Infantry within 3" Charge. The Leader must charge. Overwatch hits the Leader first. Charging models get +1 Melee die and +1 Melee Power. Every unit that joins counts as activated.'],
+   ["Volley Fire!","One Infantry unit gets +1 Ranged die per model, on one weapon of its choice."],
    ["Take Cover!","One Infantry unit: ranged attacks against it need +1 to hit (Armor +1) until the start of its next activation."],
    ["Hold the Line!","One Infantry unit: melee attacks against it need +1 to hit (Armor +1). It can't Fall Back or become Scattered until end of round."],
-   ["Double Time!",'One unit moves up to 3", not ending within 1" of an enemy. May still activate normally.']]):tbl(["Order","Effect"],[
-   ["Follow Me!",'The Leader and all friendly Infantry or Space Knight models within 3" that haven\'t activated Charge. The Leader must charge. Overwatch must target the Leader first. Each charger gets +1 Melee die and +1 Melee Power.'],
-   ["Volley Fire!","One Infantry or Space Knight model gets +1 Ranged die."],
+   ["Double Time!",'One unit that isn\'t engaged moves up to 3", not ending within 1" of an enemy. May still activate normally.']]):tbl(["Order","Effect"],[
+   ["Follow Me!",'The Leader and all friendly Infantry or Space Knight models within 3" that haven\'t activated Charge. The Leader must charge. Overwatch must target the Leader first. Each charger gets +1 Melee die and +1 Melee Power. Every model that joins counts as activated.'],
+   ["Volley Fire!","One Infantry or Space Knight model gets +1 Ranged die on one weapon of its choice."],
    ["Take Cover!","One Infantry or Space Knight model: ranged attacks against it need Armor +1 until the start of its next activation."],
    ["Hold the Line!","One Infantry or Space Knight model: melee attacks against it need Armor +1. It can't Fall Back or become Scattered until end of round."],
-   ["Double Time!",'One model moves up to 3", not ending within 1" of an enemy. It may still activate normally.']])}
+   ["Double Time!",'One model that isn\'t engaged moves up to 3", not ending within 1" of an enemy. It may still activate normally.']])}
   ${note("Space Knights count as Infantry for Follow Me!, Volley Fire!, Take Cover!, and Hold the Line!.")}
   `},
  {id:"warp",code:"10",title:"Warp",
-  both:()=>`<p>Every Wizard knows all spells. It may cast <b>one spell per activation</b>, in its Orders/Warp phase. Range is measured from the Wizard.</p><ol><li>Roll 1d6 + Will Power. Meet or beat the spell's Control value.</li><li>A natural 1 is a <b>Catastrophic Failure</b>.</li><li>Enemy Wizards within 3" of the spell's target area may try <b>Warp Defense</b>: 1d6 + Will Power. Equal to or higher than the casting roll cancels the spell.</li></ol>
+  both:()=>`<p>Every Wizard knows all spells. It may cast <b>one spell per activation</b>, in its Orders/Warp phase, and can't cast while engaged. Range is measured from the Wizard.</p><ol><li>Roll 1d6 + Will Power. Meet or beat the spell's Control value.</li><li>A natural 1 is a <b>Catastrophic Failure</b>.</li><li>One enemy Wizard within 3" of the spell's target area may try <b>Warp Defense</b> (the defender picks if several are eligible): 1d6 + Will Power. Equal to or higher than the casting roll cancels the spell.</li></ol>
   <p>For area spells like Warp Storm, the 3" is measured from the targeted point, not the blast edge.</p>${mode==="sk"?note('“Target unit” reads as “target model.” Area spells affect every model in the area.'):""}
   ${tbl(["Will Power","Modifier"],T.will.map(([a,b])=>[a,"+"+b]))}
   <div class="tbl"><table><thead><tr><th>Spell</th><th class="num">Range</th><th class="num">Control</th><th>Effect</th><th>Catastrophic Failure</th></tr></thead><tbody>
@@ -610,9 +610,9 @@ const R=[
  {id:"victory",code:"11",title:"Victory",
   both:()=>tbl(["Condition","How to win"],[
    ["Scenario Victory","Set by the scenario. Overrides the others."],
-   ["Broken Forces",`Destroy 50% of the enemy's ${mode==="core"?"force":"models"} and their Leader.`],
+   ["Broken Forces","Destroy 50% or more of the enemy force by points, including their Leader. Removed models count their points; Leader and Wizard costs count when that model falls."],
    ["Mission Objectives","Complete the objective(s) first."],
-   ["Victory Points","The scenario sets what scores VP (objectives held, enemy Leaders destroyed) and the total needed. First to reach it wins. Separate from army-building points."]])+`<h4>Game length</h4><p>The game ends after <b>round 6</b> if nothing else has decided it (a scenario can change the limit). Then the player with more Victory Points wins; if there are none or they tie, the player who destroyed the larger share of the enemy force wins; otherwise it's a draw.</p>`},
+   ["Victory Points","The scenario sets what scores VP (objectives held, enemy Leaders destroyed) and the total needed. First to reach it wins. Separate from army-building points."]])+`<h4>Game length</h4><p>The game ends after <b>round 6</b> if nothing else has decided it (a scenario can change the limit). Then the player with more Victory Points wins; if there are none or they tie, the player who destroyed more of the enemy force by points (as a share of its total) wins; otherwise it's a draw.</p>`},
  {id:"diff",code:"12",title:"Core vs Skirmish",
   both:()=>`<div class="tbl"><table><thead><tr><th>Topic</th><th>Core</th><th>Skirmish</th></tr></thead><tbody>
   <tr><td>Force size</td><td>500 / 1000 / 1500 points</td><td>150 / 200 / 300 points, 5–15 models</td></tr>
@@ -621,7 +621,7 @@ const R=[
   <tr><td>Attack dice</td><td>Rate × models</td><td>Rate</td></tr>
   <tr><td>Catch-Up</td><td>3+ unit gap</td><td>2+ model gap</td></tr>
   <tr><td>Leaders</td><td>Retinue, Bodyguard</td><td>Single model</td></tr>
-  <tr><td>Broken Forces</td><td>50% of force</td><td>50% of models</td></tr>
+  <tr><td>Broken Forces</td><td>50% of points</td><td>50% of points</td></tr>
   </tbody></table></div><p>Skirmish is a complete ruleset on its own; you don't need the Core Rules to play it. Every model acts, takes damage, and is removed on its own.</p>`}
 ];
 const ruleHTML=r=>r.both?r.both():(mode==="core"?r.core:r.sk);
@@ -642,6 +642,7 @@ const GAPS=[
  ["Terrain","Resolved 25 Nov 2026: Blocking (Low/Tall), Cover, Difficult (−2\"), and Impassable traits; players alternate placing terrain.","done"],
  ["Line of sight and targeting","Resolved 25 Nov 2026: base-to-base lines, models block, big models see over, free targeting, partly blocked gives Armor +1.","done"],
  ["Melee Rate and Power tiers","Resolved 25 Nov 2026: melee uses the weapon Rate and Power tiers, written Rate / Power.","done"],
+ ["Full rules pass","Resolved 26 Nov 2026: Follow Me! joiners count as activated; Double Time! can't target engaged units; Overwatch each charge unless engaged; engaged and Close in (2\") defined; measure anytime, no failed charges; Broken Forces and tiebreak by points; Leaders declared before deployment and can't order themselves; no casting while engaged; one Warp Defense per spell; Volley Fire! on one weapon.","done"],
  ["Skirmish Catch-Up threshold","The 2-model gap is untested.","playtest"],
  ["Armor spacing","Resolved 25 Nov 2026: evenly spaced at None 3+, Light 4+, Heavy 5+; Heavy costs 4 points per Health.","done"]
 ];
@@ -655,9 +656,9 @@ function steps(){
    ["Play a round",`Players take turns activating one ${U()} each. Every ${U()} activates once. When both sides have activated everything, the round ends and a new one starts.`],
    ["Activate a "+U(),`Each activation has three phases:<ol><li><b>Orders / Warp</b> (optional): a Leader gives an Order or a Wizard casts. You can do this after moving instead.</li><li><b>Movement</b>: Move (up to Movement, not ending within 1" of an enemy), Charge (+2", end within 1"), or Fall Back.</li><li><b>Combat</b>: shoot <i>or</i> fight in melee.</li></ol>`],
    ["Shoot",c?`Roll Rate × models in the unit, add Power to each die, and every total that meets or beats the target's Armor is a hit. Each hit is 1 damage.<div class="example"><span class="code">Example</span>A 5-model unit with <b>Medium / Rapid / Heavy</b> shoots Heavy Armor (5+). It rolls 5 × 2 = <b>10 dice</b> at +1, so each die needs a 4 or better.<br><span class="dice"><span class="h">6</span> <span class="m">2</span> <span class="h">4</span> <span class="h">5</span> <span class="m">1</span> <span class="m">3</span> <span class="h">6</span> <span class="m">3</span> <span class="h">4</span> <span class="m">2</span></span> → <b>5 hits, 5 damage</b>.</div>`:`Roll dice equal to Rate, add Power to each die, and every total that meets or beats the target's Armor is a hit. Each hit is 1 damage, and extra damage past 0 Health is lost.<div class="example"><span class="code">Example</span>A model with <b>Medium / Rapid / Heavy</b> shoots a Heavy Armor (5+) model with 2 Health. It rolls <b>2 dice</b> at +1, needing a 4 or better.<br><span class="dice"><span class="h">5</span> <span class="m">3</span></span> → <b>1 hit</b>. The target drops to 1 Health.</div>`],
-   ["Charge and react",`Declare a Charge. The target may fire Overwatch at −2 before you move. Then move up to Movement +2" and fight. Only you roll; the enemy hits back on its own activation.<div class="example"><span class="code">Example</span>Overwatch with Standard Power (+0) against Heavy Armor (5+) needs a total of 7. Only a natural 6 hits, because a natural 6 always hits. Check the Hit odds tab for any matchup.</div>`],
-   ["Use your Leader",`Once per activation, your Leader can give one Order to a friendly ${U()} that hasn't activated, within 3" (12" with Radios). <b>Take Cover!</b> makes a ${mode==="core"?"unit":"model"} harder to shoot: its Armor number goes up by 1 against ranged attacks until the start of its next activation, so Light 4+ becomes 5+. <b>Follow Me!</b> launches a group charge with +1 die and +1 Power.`],
-   ["Win",`Usually by <b>Broken Forces</b>: destroy half the enemy's ${c?"force":"models"} <i>and</i> their Leader. Scenarios can set other goals.`]
+   ["Charge and react",`Measure first, then declare a Charge on an enemy within Movement +2". The target may fire Overwatch at −2 before you move. Move, close in up to 2", and fight. Only you roll; the enemy hits back on its own activation.<div class="example"><span class="code">Example</span>Overwatch with Standard Power (+0) against Heavy Armor (5+) needs a total of 7. Only a natural 6 hits, because a natural 6 always hits. Check the Hit odds tab for any matchup.</div>`],
+   ["Use your Leader",`Once per activation, your Leader can give one Order to another friendly ${U()} that hasn't activated, within 3" (12" with Radios). <b>Take Cover!</b> makes a ${mode==="core"?"unit":"model"} harder to shoot: its Armor number goes up by 1 against ranged attacks until the start of its next activation, so Light 4+ becomes 5+. <b>Follow Me!</b> launches a group charge with +1 die and +1 Power.`],
+   ["Win",`Usually by <b>Broken Forces</b>: destroy half the enemy's points <i>and</i> their Leader. Scenarios can set other goals.`]
   ];
 }
 
@@ -864,7 +865,7 @@ function renderSheet(st){
    ${k.special?`<div class="sp">${escH(k.special)}</div>`:""}
    <div class="track">DMG ${"□".repeat(Math.min(k.health*m,30))}</div></div>`};
   const items=ARMY.entries.map(e=>[cardById(e.id),e.qty]).filter(x=>x[0]);
-  $("#sheet").innerHTML=`<div class="sh"><div><h3>${escH(ARMY.name||"Unnamed force")}</h3><div class="meta">Space Knights ${c?"Core v3.18 · "+st.units+" units, "+st.models+" models":"Skirmish v1.17 · "+st.models+" models"} · <b>${st.pts} / ${getLimit()} pts</b> · Leader ${st.leaders===1?"✓":"needed"}</div></div><div class="meta">Natural 6 always hits · Reactions −2<br>Armor: None 3+ · Light 4+ · Heavy 5+</div></div>
+  $("#sheet").innerHTML=`<div class="sh"><div><h3>${escH(ARMY.name||"Unnamed force")}</h3><div class="meta">Space Knights ${c?"Core v3.19 · "+st.units+" units, "+st.models+" models":"Skirmish v1.18 · "+st.models+" models"} · <b>${st.pts} / ${getLimit()} pts</b> · Leader ${st.leaders===1?"✓":"needed"}</div></div><div class="meta">Natural 6 always hits · Reactions −2<br>Armor: None 3+ · Light 4+ · Heavy 5+</div></div>
   ${items.length?`<div class="sgrid">${items.map(([k,q])=>blk(k,q)).join("")}</div>`:`<p class="code">Add cards above to fill the sheet.</p>`}`;
 }
 function armyText(){
