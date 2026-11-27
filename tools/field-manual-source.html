@@ -339,7 +339,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
         <button type="button" class="btn ghost" id="w-add">+ Add weapon</button>
         <h4>Melee</h4>
         <div class="field"><span class="fl">Melee Rate</span><div class="seg" id="b-mrate"></div></div>
-        <div class="field"><span class="fl">Melee Power</span><div class="seg" id="b-mpower"></div></div>
+        <div class="field" id="mpower-field"><span class="fl">Melee Power</span><div class="seg" id="b-mpower"></div></div>
         <div class="field"><label for="b-special">Special rules</label><textarea id="b-special">Space Knight Leader: may order Infantry and other Space Knights.</textarea></div>
         <div class="btns">
           <button type="submit" class="btn">Save card</button>
@@ -762,12 +762,12 @@ function syncForm(){
   seg($("#b-armor"),T.armor.map(([a,b])=>[a+" "+b+"+",a]),B.armor,v=>{B.armor=v;upd()});
   seg($("#b-move"),T.move.map(([a,b])=>[a+' '+b+'"',a]),B.move,v=>{B.move=v;upd()});
   renderWeapons();
-  seg($("#b-mrate"),T.rate.map(([a,b])=>[a+" "+b,b]),B.mrate,v=>{B.mrate=+v;upd()});
+  seg($("#b-mrate"),[["None",0],...T.rate.map(([a,b])=>[a+" "+b,b])],B.mrate,v=>{B.mrate=+v;$("#mpower-field").hidden=!B.mrate;upd()});$("#mpower-field").hidden=!B.mrate;
   seg($("#b-mpower"),T.power.map(([a,b])=>[a+" +"+b,b]),B.mpower,v=>{B.mpower=+v;upd()});
 }
 function renderWeapons(){
   const box=$("#weapons");
-  box.innerHTML=B.weapons.map((w,i)=>`<div class="wblock"><div class="wh"><input type="text" id="w-name-${i}" data-wi="${i}" placeholder="Weapon ${i+1} name (optional)" aria-label="Weapon ${i+1} name">${B.weapons.length>1?`<button type="button" class="xbtn" data-wdel="${i}">Remove</button>`:""}</div>
+  box.innerHTML=(B.weapons.length?"":`<p class="code">No ranged weapon. This unit can't shoot or make reaction shots.</p>`)+B.weapons.map((w,i)=>`<div class="wblock"><div class="wh"><input type="text" id="w-name-${i}" data-wi="${i}" placeholder="Weapon ${i+1} name (optional)" aria-label="Weapon ${i+1} name"><button type="button" class="xbtn" data-wdel="${i}">Remove</button></div>
   <div class="field"><span class="fl">Range</span><div class="seg" id="w-range-${i}"></div></div>
   <div class="field"><span class="fl">Rate of Attack</span><div class="seg" id="w-rate-${i}"></div></div>
   <div class="field"><span class="fl">Power</span><div class="seg" id="w-power-${i}"></div></div></div>`).join("");
@@ -798,7 +798,8 @@ function cardText(B){
    `${B.type}${B.wizard?" · Wizard ("+nameOf(T.will,B.will)+" +"+B.will+")":""}${c?" · "+m+" models":""}`,
    `Health ${B.health}${c?" per model":""} · Armor ${B.armor} ${T.armor.find(a=>a[0]===B.armor)[1]}+ · Move ${B.move} ${T.move.find(a=>a[0]===B.move)[1]}"`,
    ...B.weapons.map((w,i)=>`${wLabel(w,i)}: ${wProf(w)} (${rng(w)}", ${w.rate*m} dice, +${w.power})`),
-   `Melee: ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)} (${B.mrate*m} dice, +${B.mpower})`,
+   B.mrate?`Melee: ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)} (${B.mrate*m} dice, +${B.mpower})`:"No melee",
+   B.weapons.length?"":"No ranged weapon",
    B.special?`Special: ${B.special}`:"",
    `Points: ${c&&m>1?ptsModel(B)+" per model, ":""}${ptsUnit(B)}${c?" per unit":""}`].filter(Boolean).join("\n");
 }
@@ -814,9 +815,9 @@ function renderCard(){
   $("#card").innerHTML=`<div class="ch"><div><h3>${esc2(B.name||"Unnamed")}</h3><div class="sub">${B.type}${B.wizard?" · Wizard · "+nameOf(T.will,B.will)+" +"+B.will:""}${c?" · "+m+" model"+(m>1?"s":""):""}</div></div><div class="ptsbox"><b>${ptsUnit(B)}</b><span>pts${c&&m>1?" · "+ptsModel(B)+"/model":""}</span></div>${B.leader?'<span class="lead">LEADER</span>':""}</div>
   <div class="statrow"><div><b>${B.health}${c&&m>1?`<small style="font-size:12px;color:var(--dim)"> ×${m}</small>`:""}</b><span>${c?"Health/model":"Health"}</span></div><div><b>${T.armor.find(a=>a[0]===B.armor)[1]}+</b><span>${B.armor}</span></div><div><b>${T.move.find(a=>a[0]===B.move)[1]}"</b><span>${B.move}</span></div><div><b>${T.move.find(a=>a[0]===B.move)[1]+2}"</b><span>Charge</span></div></div>
   ${B.weapons.map((w,i)=>`<div class="wpn"><div class="k">${esc2(wLabel(w,i))} · ${wProf(w)}</div><div class="v">${rng(w)}" · ${w.rate*m} dice · +${w.power}</div><div class="odds3">${odds(w.power)}</div></div>`).join("")}
-  <div class="wpn"><div class="k">Melee · ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)}</div><div class="v">${B.mrate*m} dice · +${B.mpower}</div><div class="odds3">${odds(B.mpower)}</div></div>
+  ${B.mrate?`<div class="wpn"><div class="k">Melee · ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)}</div><div class="v">${B.mrate*m} dice · +${B.mpower}</div><div class="odds3">${odds(B.mpower)}</div></div>`:""}
   ${B.wizard?`<div class="wpn"><div class="k">Spells · Will Power ${nameOf(T.will,B.will)} +${B.will}</div><div class="tbl" style="margin:4px 0 0"><table><thead><tr><th>Spell</th><th class="num">Rng</th><th class="num">Ctrl</th><th class="num">Cast</th></tr></thead><tbody>${spellRows(B)}</tbody></table></div></div>`:""}
-  <div class="cfoot">${B.special?esc2(B.special):"No special rules."}${B.weapons.length>1?`<div class="info">Fires all ${B.weapons.length} weapons each Combat phase, each at its own target.</div>`:""}${infos.map(w=>`<div class="info">${w}</div>`).join("")}${warns.map(w=>`<div class="warn">${w}</div>`).join("")}</div>`;
+  <div class="cfoot">${B.special?esc2(B.special):"No special rules."}${!B.weapons.length?`<div class="info">No ranged weapon: can't shoot, Overwatch, or take Fall Back shots.</div>`:""}${!B.mrate?`<div class="info">No melee: can't Charge or make melee attacks. If engaged, it must Fall Back or stay.</div>`:""}${B.weapons.length>1?`<div class="info">Fires all ${B.weapons.length} weapons each Combat phase, each at its own target.</div>`:""}${infos.map(w=>`<div class="info">${w}</div>`).join("")}${warns.map(w=>`<div class="warn">${w}</div>`).join("")}</div>`;
 }
 function renderRoster(){
   $("#roster").innerHTML=roster.length?roster.map((r,i)=>`<div class="ri"><span>${r.name.replace(/[<>&]/g,"")||"Unnamed"} · ${r.type}${r.leader?" · Leader":""}</span><span style="display:flex;gap:4px;flex:none"><button type="button" data-load="${i}">Open</button><button type="button" data-del="${i}">Delete</button></span></div>`).join(""):`<p class="code">No saved cards yet. Save a card to keep it on this device.</p>`;
@@ -860,7 +861,7 @@ function renderSheet(st){
    return `<div class="sblk"><div class="t"><b>${escH(k.name||"Unnamed")}</b><i>${qty>1?"×"+qty+" · ":""}${ptsUnit(k)*qty} pts${k.leader?" · LEADER":""}</i></div>
    <div class="s">${k.type}${k.wizard?" · Wizard "+nameOf(T.will,k.will)+" +"+k.will:""}${c?" · "+m+" model"+(m>1?"s":""):""}</div>
    <table><thead><tr><th class="num">${c?"HP/model":"HP"}</th><th class="num">Armor</th><th class="num">Move</th><th class="num">Charge</th></tr></thead><tbody><tr><td class="num">${k.health}</td><td class="num">${arm}+</td><td class="num">${mv}"</td><td class="num">${mv+2}"</td></tr></tbody></table>
-   <table><thead><tr><th>Weapon</th><th class="num">Rng</th><th class="num">Dice</th><th class="num">Pwr</th></tr></thead><tbody>${k.weapons.map((w,i)=>`<tr><td>${escH(wLabel(w,i))}</td><td class="num">${rng(w)}"</td><td class="num">${w.rate*m}</td><td class="num">+${w.power}</td></tr>`).join("")}<tr><td>Melee</td><td class="num">1"</td><td class="num">${k.mrate*m}</td><td class="num">+${k.mpower}</td></tr></tbody></table>
+   <table><thead><tr><th>Weapon</th><th class="num">Rng</th><th class="num">Dice</th><th class="num">Pwr</th></tr></thead><tbody>${k.weapons.map((w,i)=>`<tr><td>${escH(wLabel(w,i))}</td><td class="num">${rng(w)}"</td><td class="num">${w.rate*m}</td><td class="num">+${w.power}</td></tr>`).join("")}${k.mrate?`<tr><td>Melee</td><td class="num">1"</td><td class="num">${k.mrate*m}</td><td class="num">+${k.mpower}</td></tr>`:""}${!k.mrate&&!k.weapons.length?`<tr><td colspan="4">No weapons</td></tr>`:""}</tbody></table>
    ${k.wizard?`<table><thead><tr><th>Spell</th><th class="num">Rng</th><th class="num">Ctrl</th><th class="num">Cast</th></tr></thead><tbody>${spellRows(k)}</tbody></table>`:""}
    ${k.special?`<div class="sp">${escH(k.special)}</div>`:""}
    <div class="track">DMG ${"□".repeat(Math.min(k.health*m,30))}</div></div>`};
