@@ -274,7 +274,7 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
 <div class="bar">
   <div class="wrap">
     <div class="row1">
-      <h1 class="brand">Space <span>Knights</span><small id="verline">Field Manual · Core v3.19 + Skirmish v1.18</small></h1>
+      <h1 class="brand">Space <span>Knights</span><small id="verline">Field Manual · Core v3.20 + Skirmish v1.19</small></h1>
       <div class="mode" role="group" aria-label="Ruleset">
         <button id="m-core" aria-pressed="true">Core</button>
         <button id="m-sk" aria-pressed="false">Skirmish</button>
@@ -547,6 +547,7 @@ const R=[
   ${mode==="core"?`<li>Attack dice = Rate of Attack × models in the unit. A 5-model unit with Rate 2 rolls 10 dice.</li>`:`<li>Pick one enemy model within Range. Roll dice equal to Rate of Attack (1, 2, or 3).</li>`}
   <li>Add the weapon's Power to each die.</li>
   <li><b>Multiple weapons:</b> fire every ranged weapon the ${U()} has equipped, unless its special rules say otherwise. Roll each weapon separately; each may pick its own target in range.</li>
+  <li><b>No ranged weapon:</b> a ${U()} may have no ranged weapons. It can't shoot or take reaction shots (Overwatch or Fall Back shots), but every ${U()} has melee and can Charge and fight.</li>
   <li>Each die whose total meets or beats the target's Armor scores a hit. There is no defense roll.</li>
   <li>A natural 1 doesn't auto-fail. It misses only if the total is still below Armor.</li>
   <li><b>A natural 6 always hits</b>, whatever the modifiers. No attack is ever impossible.</li>
@@ -742,6 +743,7 @@ const blank=()=>({id:uid(),name:"",models:5,type:"Infantry",leader:false,wizard:
 function norm(c){
   c={...c};
   if(!c.id)c.id=uid();
+  if(!c.mrate)c.mrate=1;
   if(!Array.isArray(c.weapons))c.weapons=[{name:"",range:c.range||"Medium",rate:+c.rate||1,power:+c.power||0}];
   delete c.range;delete c.rate;delete c.power;
   return c;
@@ -762,12 +764,12 @@ function syncForm(){
   seg($("#b-armor"),T.armor.map(([a,b])=>[a+" "+b+"+",a]),B.armor,v=>{B.armor=v;upd()});
   seg($("#b-move"),T.move.map(([a,b])=>[a+' '+b+'"',a]),B.move,v=>{B.move=v;upd()});
   renderWeapons();
-  seg($("#b-mrate"),[["None",0],...T.rate.map(([a,b])=>[a+" "+b,b])],B.mrate,v=>{B.mrate=+v;$("#mpower-field").hidden=!B.mrate;upd()});$("#mpower-field").hidden=!B.mrate;
+  if(!B.mrate)B.mrate=1;seg($("#b-mrate"),T.rate.map(([a,b])=>[a+" "+b,b]),B.mrate,v=>{B.mrate=+v;upd()});
   seg($("#b-mpower"),T.power.map(([a,b])=>[a+" +"+b,b]),B.mpower,v=>{B.mpower=+v;upd()});
 }
 function renderWeapons(){
   const box=$("#weapons");
-  box.innerHTML=(B.weapons.length?"":`<p class="code">No ranged weapon. This unit can't shoot or make reaction shots.</p>`)+B.weapons.map((w,i)=>`<div class="wblock"><div class="wh"><input type="text" id="w-name-${i}" data-wi="${i}" placeholder="Weapon ${i+1} name (optional)" aria-label="Weapon ${i+1} name"><button type="button" class="xbtn" data-wdel="${i}">Remove</button></div>
+  box.innerHTML=(B.weapons.length?"":`<p class="code">No ranged weapon. This unit fights in melee only and can't take reaction shots.</p>`)+B.weapons.map((w,i)=>`<div class="wblock"><div class="wh"><input type="text" id="w-name-${i}" data-wi="${i}" placeholder="Weapon ${i+1} name (optional)" aria-label="Weapon ${i+1} name"><button type="button" class="xbtn" data-wdel="${i}">Remove</button></div>
   <div class="field"><span class="fl">Range</span><div class="seg" id="w-range-${i}"></div></div>
   <div class="field"><span class="fl">Rate of Attack</span><div class="seg" id="w-rate-${i}"></div></div>
   <div class="field"><span class="fl">Power</span><div class="seg" id="w-power-${i}"></div></div></div>`).join("");
@@ -817,7 +819,7 @@ function renderCard(){
   ${B.weapons.map((w,i)=>`<div class="wpn"><div class="k">${esc2(wLabel(w,i))} · ${wProf(w)}</div><div class="v">${rng(w)}" · ${w.rate*m} dice · +${w.power}</div><div class="odds3">${odds(w.power)}</div></div>`).join("")}
   ${B.mrate?`<div class="wpn"><div class="k">Melee · ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)}</div><div class="v">${B.mrate*m} dice · +${B.mpower}</div><div class="odds3">${odds(B.mpower)}</div></div>`:""}
   ${B.wizard?`<div class="wpn"><div class="k">Spells · Will Power ${nameOf(T.will,B.will)} +${B.will}</div><div class="tbl" style="margin:4px 0 0"><table><thead><tr><th>Spell</th><th class="num">Rng</th><th class="num">Ctrl</th><th class="num">Cast</th></tr></thead><tbody>${spellRows(B)}</tbody></table></div></div>`:""}
-  <div class="cfoot">${B.special?esc2(B.special):"No special rules."}${!B.weapons.length?`<div class="info">No ranged weapon: can't shoot, Overwatch, or take Fall Back shots.</div>`:""}${!B.mrate?`<div class="info">No melee: can't Charge or make melee attacks. If engaged, it must Fall Back or stay.</div>`:""}${B.weapons.length>1?`<div class="info">Fires all ${B.weapons.length} weapons each Combat phase, each at its own target.</div>`:""}${infos.map(w=>`<div class="info">${w}</div>`).join("")}${warns.map(w=>`<div class="warn">${w}</div>`).join("")}</div>`;
+  <div class="cfoot">${B.special?esc2(B.special):"No special rules."}${!B.weapons.length?`<div class="info">No ranged weapon: can't shoot or take reaction shots (Overwatch or Fall Back shots). It can still Charge and fight in melee.</div>`:""}${B.weapons.length>1?`<div class="info">Fires all ${B.weapons.length} weapons each Combat phase, each at its own target.</div>`:""}${infos.map(w=>`<div class="info">${w}</div>`).join("")}${warns.map(w=>`<div class="warn">${w}</div>`).join("")}</div>`;
 }
 function renderRoster(){
   $("#roster").innerHTML=roster.length?roster.map((r,i)=>`<div class="ri"><span>${r.name.replace(/[<>&]/g,"")||"Unnamed"} · ${r.type}${r.leader?" · Leader":""}</span><span style="display:flex;gap:4px;flex:none"><button type="button" data-load="${i}">Open</button><button type="button" data-del="${i}">Delete</button></span></div>`).join(""):`<p class="code">No saved cards yet. Save a card to keep it on this device.</p>`;
@@ -866,7 +868,7 @@ function renderSheet(st){
    ${k.special?`<div class="sp">${escH(k.special)}</div>`:""}
    <div class="track">DMG ${"□".repeat(Math.min(k.health*m,30))}</div></div>`};
   const items=ARMY.entries.map(e=>[cardById(e.id),e.qty]).filter(x=>x[0]);
-  $("#sheet").innerHTML=`<div class="sh"><div><h3>${escH(ARMY.name||"Unnamed force")}</h3><div class="meta">Space Knights ${c?"Core v3.19 · "+st.units+" units, "+st.models+" models":"Skirmish v1.18 · "+st.models+" models"} · <b>${st.pts} / ${getLimit()} pts</b> · Leader ${st.leaders===1?"✓":"needed"}</div></div><div class="meta">Natural 6 always hits · Reactions −2<br>Armor: None 3+ · Light 4+ · Heavy 5+</div></div>
+  $("#sheet").innerHTML=`<div class="sh"><div><h3>${escH(ARMY.name||"Unnamed force")}</h3><div class="meta">Space Knights ${c?"Core v3.20 · "+st.units+" units, "+st.models+" models":"Skirmish v1.19 · "+st.models+" models"} · <b>${st.pts} / ${getLimit()} pts</b> · Leader ${st.leaders===1?"✓":"needed"}</div></div><div class="meta">Natural 6 always hits · Reactions −2<br>Armor: None 3+ · Light 4+ · Heavy 5+</div></div>
   ${items.length?`<div class="sgrid">${items.map(([k,q])=>blk(k,q)).join("")}</div>`:`<p class="code">Add cards above to fill the sheet.</p>`}`;
 }
 function armyText(){
