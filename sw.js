@@ -1,5 +1,5 @@
 // Space Knights Field Manual service worker. Built by tools/build.py.
-const VERSION = "5767bef422";
+const VERSION = "b62f053320";
 const CACHE = "sk-fm-" + VERSION;
 const FONTS = "sk-fm-fonts";
 const SHELL = ["./", "index.html", "manifest.webmanifest",

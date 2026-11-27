@@ -338,8 +338,8 @@ body.sk .lib .li .load{background:var(--cyan);border-color:var(--cyan);color:#04
         <div id="weapons"></div>
         <button type="button" class="btn ghost" id="w-add">+ Add weapon</button>
         <h4>Melee</h4>
-        <div class="field"><span class="fl">Melee Rate</span><div class="seg" id="b-mrate"></div></div>
-        <div class="field" id="mpower-field"><span class="fl">Melee Power</span><div class="seg" id="b-mpower"></div></div>
+        <div id="melees"></div>
+        <button type="button" class="btn ghost" id="m-add">+ Add melee weapon</button>
         <div class="field"><label for="b-special">Special rules</label><textarea id="b-special">Space Knight Leader: may order Infantry and other Space Knights.</textarea></div>
         <div class="btns">
           <button type="submit" class="btn">Save card</button>
@@ -739,17 +739,19 @@ const pct=p=>p>=0.995&&p<1?">99%":Math.round(p*100)+"%";
 const TYPES=["Infantry","Space Knight","Vehicle","Monster"];
 const uid=()=>"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const newW=()=>({name:"",range:"Medium",rate:1,power:0});
-const blank=()=>({id:uid(),name:"",models:5,type:"Infantry",leader:false,wizard:false,will:0,health:1,armor:"Light",move:"Normal",weapons:[newW()],mrate:1,mpower:0,special:""});
+const newM=()=>({name:"",rate:1,power:0});
+const blank=()=>({id:uid(),name:"",models:5,type:"Infantry",leader:false,wizard:false,will:0,health:1,armor:"Light",move:"Normal",weapons:[newW()],melee:[newM()],special:""});
 function norm(c){
   c={...c};
   if(!c.id)c.id=uid();
-  if(!c.mrate)c.mrate=1;
+  if(!Array.isArray(c.melee)||!c.melee.length)c.melee=[{name:"",rate:+c.mrate||1,power:+c.mpower||0}];
+  delete c.mrate;delete c.mpower;
   if(!Array.isArray(c.weapons))c.weapons=[{name:"",range:c.range||"Medium",rate:+c.rate||1,power:+c.power||0}];
   delete c.range;delete c.rate;delete c.power;
   return c;
 }
 const SAMPLE=[
- {id:"ex-varro",name:"Lance Sergeant Varro",models:5,type:"Space Knight",leader:true,wizard:false,will:0,health:3,armor:"Heavy",move:"Normal",weapons:[{name:"Bolt rifle",range:"Medium",rate:2,power:1},{name:"Arc launcher",range:"Short",rate:1,power:2}],mrate:2,mpower:1,special:"Example card."},
+ {id:"ex-varro",name:"Lance Sergeant Varro",models:5,type:"Space Knight",leader:true,wizard:false,will:0,health:3,armor:"Heavy",move:"Normal",weapons:[{name:"Bolt rifle",range:"Medium",rate:2,power:1},{name:"Arc launcher",range:"Short",rate:1,power:2}],melee:[{name:"Power sword",rate:2,power:1}],special:"Example card."},
  {id:"ex-line",name:"Line Troopers",models:5,type:"Infantry",leader:false,wizard:false,will:0,health:1,armor:"Light",move:"Normal",weapons:[{name:"Carbine",range:"Medium",rate:1,power:0}],mrate:1,mpower:0,special:"Example card."},
  {id:"ex-seer",name:"Warp Seer",models:1,type:"Infantry",leader:false,wizard:true,will:1,health:2,armor:"None",move:"Normal",weapons:[{name:"Hand cannon",range:"Short",rate:1,power:1}],mrate:1,mpower:0,special:"Example card."}
 ];
@@ -764,8 +766,18 @@ function syncForm(){
   seg($("#b-armor"),T.armor.map(([a,b])=>[a+" "+b+"+",a]),B.armor,v=>{B.armor=v;upd()});
   seg($("#b-move"),T.move.map(([a,b])=>[a+' '+b+'"',a]),B.move,v=>{B.move=v;upd()});
   renderWeapons();
-  if(!B.mrate)B.mrate=1;seg($("#b-mrate"),T.rate.map(([a,b])=>[a+" "+b,b]),B.mrate,v=>{B.mrate=+v;upd()});
-  seg($("#b-mpower"),T.power.map(([a,b])=>[a+" +"+b,b]),B.mpower,v=>{B.mpower=+v;upd()});
+  renderMelee();
+}
+function renderMelee(){
+  const box=$("#melees");
+  box.innerHTML=B.melee.map((w,i)=>`<div class="wblock"><div class="wh"><input type="text" id="mw-name-${i}" data-mi="${i}" placeholder="Melee weapon ${i+1} name (optional)" aria-label="Melee weapon ${i+1} name">${B.melee.length>1?`<button type="button" class="xbtn" data-mdel="${i}">Remove</button>`:""}</div>
+  <div class="field"><span class="fl">Rate of Attack</span><div class="seg" id="mw-rate-${i}"></div></div>
+  <div class="field"><span class="fl">Power</span><div class="seg" id="mw-power-${i}"></div></div></div>`).join("");
+  B.melee.forEach((w,i)=>{
+    $("#mw-name-"+i).value=w.name||"";
+    seg($("#mw-rate-"+i),T.rate.map(([a,b])=>[a+" "+b,b]),w.rate,v=>{w.rate=+v;upd()});
+    seg($("#mw-power-"+i),T.power.map(([a,b])=>[a+" +"+b,b]),w.power,v=>{w.power=+v;upd()});
+  });
 }
 function renderWeapons(){
   const box=$("#weapons");
@@ -785,11 +797,13 @@ const SPELLS=[["Warp Blast",12,2],["Visions of the Warp",6,4],["Warp Storm",18,6
 const castP=(wp,ctl)=>{let n=0;for(let r=2;r<=6;r++)if(r+wp>=ctl)n++;return n/6};
 const spellRows=k=>SPELLS.map(([n,r,ctl])=>`<tr><td>${n}</td><td class="num">${r}"</td><td class="num">${ctl}</td><td class="num">${pct(castP(k.will,ctl))}</td></tr>`).join("");
 const wLabel=(w,i)=>w.name?w.name:"Weapon "+(i+1);
+const mLabel=(k,w,i)=>w.name?w.name:(k.melee.length>1?"Melee "+(i+1):"Melee");
+const mProf=w=>`${nameOf(T.rate,w.rate)} / ${nameOf(T.power,w.power)}`;
 const wProf=w=>`${w.range} / ${nameOf(T.rate,w.rate)} / ${nameOf(T.power,w.power)}`;
 const rng=w=>T.range.find(a=>a[0]===w.range)[1];
 const nameOf=(tab,v)=>tab.find(r=>String(r[1])===String(v))[0];
 const WPT={Short:[3,4,6],Medium:[4,6,7],Long:[5,6,8]},MPT=[2,3,4],ARMV={None:2,Light:3,Heavy:4},MVP={Normal:0,Fast:2,Flying:4},WIZP=[5,10,15];
-const ptsModel=k=>1+(k.health|0)*ARMV[k.armor]+MVP[k.move]+k.weapons.reduce((t,w)=>t+w.rate*WPT[w.range][w.power],0)+k.mrate*MPT[k.mpower];
+const ptsModel=k=>1+(k.health|0)*ARMV[k.armor]+MVP[k.move]+k.weapons.reduce((t,w)=>t+w.rate*WPT[w.range][w.power],0)+k.melee.reduce((t,w)=>t+w.rate*MPT[w.power],0);
 const ptsExtra=k=>(k.leader?10:0)+(k.wizard?WIZP[k.will]:0);
 const ptsUnit=k=>{const m=mode==="core"?Math.max(1,k.models|0):1;return ptsModel(k)*m+ptsExtra(k)};
 const LIMITS={core:[500,1000,1500],sk:[150,200,300]};
@@ -800,7 +814,7 @@ function cardText(B){
    `${B.type}${B.wizard?" · Wizard ("+nameOf(T.will,B.will)+" +"+B.will+")":""}${c?" · "+m+" models":""}`,
    `Health ${B.health}${c?" per model":""} · Armor ${B.armor} ${T.armor.find(a=>a[0]===B.armor)[1]}+ · Move ${B.move} ${T.move.find(a=>a[0]===B.move)[1]}"`,
    ...B.weapons.map((w,i)=>`${wLabel(w,i)}: ${wProf(w)} (${rng(w)}", ${w.rate*m} dice, +${w.power})`),
-   B.mrate?`Melee: ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)} (${B.mrate*m} dice, +${B.mpower})`:"No melee",
+   ...B.melee.map((w,i)=>`${w.name?w.name+" (melee)":mLabel(B,w,i)}: ${mProf(w)} (${w.rate*m} dice, +${w.power})`),
    B.weapons.length?"":"No ranged weapon",
    B.special?`Special: ${B.special}`:"",
    `Points: ${c&&m>1?ptsModel(B)+" per model, ":""}${ptsUnit(B)}${c?" per unit":""}`].filter(Boolean).join("\n");
@@ -817,7 +831,7 @@ function renderCard(){
   $("#card").innerHTML=`<div class="ch"><div><h3>${esc2(B.name||"Unnamed")}</h3><div class="sub">${B.type}${B.wizard?" · Wizard · "+nameOf(T.will,B.will)+" +"+B.will:""}${c?" · "+m+" model"+(m>1?"s":""):""}</div></div><div class="ptsbox"><b>${ptsUnit(B)}</b><span>pts${c&&m>1?" · "+ptsModel(B)+"/model":""}</span></div>${B.leader?'<span class="lead">LEADER</span>':""}</div>
   <div class="statrow"><div><b>${B.health}${c&&m>1?`<small style="font-size:12px;color:var(--dim)"> ×${m}</small>`:""}</b><span>${c?"Health/model":"Health"}</span></div><div><b>${T.armor.find(a=>a[0]===B.armor)[1]}+</b><span>${B.armor}</span></div><div><b>${T.move.find(a=>a[0]===B.move)[1]}"</b><span>${B.move}</span></div><div><b>${T.move.find(a=>a[0]===B.move)[1]+2}"</b><span>Charge</span></div></div>
   ${B.weapons.map((w,i)=>`<div class="wpn"><div class="k">${esc2(wLabel(w,i))} · ${wProf(w)}</div><div class="v">${rng(w)}" · ${w.rate*m} dice · +${w.power}</div><div class="odds3">${odds(w.power)}</div></div>`).join("")}
-  ${B.mrate?`<div class="wpn"><div class="k">Melee · ${nameOf(T.rate,B.mrate)} / ${nameOf(T.power,B.mpower)}</div><div class="v">${B.mrate*m} dice · +${B.mpower}</div><div class="odds3">${odds(B.mpower)}</div></div>`:""}
+  ${B.melee.map((w,i)=>`<div class="wpn"><div class="k">${w.name?esc2(w.name)+" · Melee":mLabel(B,w,i)} · ${mProf(w)}</div><div class="v">1" · ${w.rate*m} dice · +${w.power}</div><div class="odds3">${odds(w.power)}</div></div>`).join("")}
   ${B.wizard?`<div class="wpn"><div class="k">Spells · Will Power ${nameOf(T.will,B.will)} +${B.will}</div><div class="tbl" style="margin:4px 0 0"><table><thead><tr><th>Spell</th><th class="num">Rng</th><th class="num">Ctrl</th><th class="num">Cast</th></tr></thead><tbody>${spellRows(B)}</tbody></table></div></div>`:""}
   <div class="cfoot">${B.special?esc2(B.special):"No special rules."}${!B.weapons.length?`<div class="info">No ranged weapon: can't shoot or take reaction shots (Overwatch or Fall Back shots). It can still Charge and fight in melee.</div>`:""}${B.weapons.length>1?`<div class="info">Fires all ${B.weapons.length} weapons each Combat phase, each at its own target.</div>`:""}${infos.map(w=>`<div class="info">${w}</div>`).join("")}${warns.map(w=>`<div class="warn">${w}</div>`).join("")}</div>`;
 }
@@ -863,7 +877,7 @@ function renderSheet(st){
    return `<div class="sblk"><div class="t"><b>${escH(k.name||"Unnamed")}</b><i>${qty>1?"×"+qty+" · ":""}${ptsUnit(k)*qty} pts${k.leader?" · LEADER":""}</i></div>
    <div class="s">${k.type}${k.wizard?" · Wizard "+nameOf(T.will,k.will)+" +"+k.will:""}${c?" · "+m+" model"+(m>1?"s":""):""}</div>
    <table><thead><tr><th class="num">${c?"HP/model":"HP"}</th><th class="num">Armor</th><th class="num">Move</th><th class="num">Charge</th></tr></thead><tbody><tr><td class="num">${k.health}</td><td class="num">${arm}+</td><td class="num">${mv}"</td><td class="num">${mv+2}"</td></tr></tbody></table>
-   <table><thead><tr><th>Weapon</th><th class="num">Rng</th><th class="num">Dice</th><th class="num">Pwr</th></tr></thead><tbody>${k.weapons.map((w,i)=>`<tr><td>${escH(wLabel(w,i))}</td><td class="num">${rng(w)}"</td><td class="num">${w.rate*m}</td><td class="num">+${w.power}</td></tr>`).join("")}${k.mrate?`<tr><td>Melee</td><td class="num">1"</td><td class="num">${k.mrate*m}</td><td class="num">+${k.mpower}</td></tr>`:""}${!k.mrate&&!k.weapons.length?`<tr><td colspan="4">No weapons</td></tr>`:""}</tbody></table>
+   <table><thead><tr><th>Weapon</th><th class="num">Rng</th><th class="num">Dice</th><th class="num">Pwr</th></tr></thead><tbody>${k.weapons.map((w,i)=>`<tr><td>${escH(wLabel(w,i))}</td><td class="num">${rng(w)}"</td><td class="num">${w.rate*m}</td><td class="num">+${w.power}</td></tr>`).join("")}${k.melee.map((w,i)=>`<tr><td>${w.name?escH(w.name)+" (melee)":mLabel(k,w,i)}</td><td class="num">1"</td><td class="num">${w.rate*m}</td><td class="num">+${w.power}</td></tr>`).join("")}</tbody></table>
    ${k.wizard?`<table><thead><tr><th>Spell</th><th class="num">Rng</th><th class="num">Ctrl</th><th class="num">Cast</th></tr></thead><tbody>${spellRows(k)}</tbody></table>`:""}
    ${k.special?`<div class="sp">${escH(k.special)}</div>`:""}
    <div class="track">DMG ${"□".repeat(Math.min(k.health*m,30))}</div></div>`};
@@ -1104,6 +1118,9 @@ $("#bf").addEventListener("submit",e=>{e.preventDefault();const i=roster.findInd
 $("#b-new").onclick=()=>{B=blank();syncForm();upd();toast("Started a new card.")};
 $("#b-copy").onclick=()=>copyText(cardText(B),"#b-toast","Copied card text.");
 $("#roster").onclick=e=>{const l=e.target.dataset.load,d=e.target.dataset.del;if(l!=null){B=clone(roster[+l]);syncForm();upd();toast("Opened "+(B.name||"card")+".")}if(d!=null){const n=roster[+d].name;roster.splice(+d,1);store.set("sk-roster",roster);saveArmy();renderRoster();renderArmy();toast("Deleted "+(n||"card")+".")}};
+$("#m-add").onclick=()=>{B.melee.push(newM());renderMelee();upd();const i=B.melee.length-1;$("#mw-name-"+i).focus()};
+$("#melees").addEventListener("input",e=>{const i=e.target.dataset.mi;if(i!=null){B.melee[+i].name=e.target.value;upd()}});
+$("#melees").addEventListener("click",e=>{const i=e.target.dataset.mdel;if(i!=null&&B.melee.length>1){B.melee.splice(+i,1);renderMelee();upd()}});
 $("#w-add").onclick=()=>{B.weapons.push(newW());renderWeapons();upd();const i=B.weapons.length-1;$("#w-name-"+i).focus()};
 $("#weapons").addEventListener("input",e=>{const i=e.target.dataset.wi;if(i!=null){B.weapons[+i].name=e.target.value;upd()}});
 $("#weapons").addEventListener("click",e=>{const i=e.target.dataset.wdel;if(i!=null){B.weapons.splice(+i,1);renderWeapons();upd()}});
