@@ -198,7 +198,7 @@ td.hot{color:var(--ok)}
 .ptsbox{margin-left:auto;margin-right:8px;text-align:right;line-height:1}.ptsbox b{display:block;font:600 22px var(--f-mono);color:var(--amber)}.ptsbox span{font:500 10px var(--f-mono);color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
 .qrbox{margin-top:12px;background:var(--hull);border:1px solid var(--seam);border-radius:4px;padding:14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .qrbox .qr{background:#fff;padding:10px;border-radius:4px;line-height:0;flex:none}
-.qrbox .qr svg{width:min(280px,70vw);height:min(280px,70vw);display:block}
+.qrbox .qr svg{width:min(420px,calc(100vw - 72px));height:min(420px,calc(100vw - 72px));display:block}
 .qrbox p{margin:0 0 8px;max-width:38ch}
 .chip{font:500 12px var(--f-mono);border:1px solid var(--seam);border-radius:2px;padding:5px 8px;color:var(--text)}
 .chip.ok{border-color:var(--ok);color:var(--ok)} .chip.bad{border-color:var(--alert);color:var(--alert)}
@@ -2768,7 +2768,7 @@ function alertBar(t){const d=document.createElement("div");d.className="note";d.
 $("#m-core").onclick=()=>{mode="core";store.set("sk-mode",mode);applyMode()};
 $("#m-sk").onclick=()=>{mode="sk";store.set("sk-mode",mode);applyMode()};
 $("#q").addEventListener("input",()=>{if(location.hash!=="#rules"&&$("#q").value.trim())location.hash="rules";renderRules()});
-window.addEventListener("hashchange",route);
+window.addEventListener("hashchange",()=>location.hash.startsWith("#import=")?importFromHash():route());
 window.addEventListener("afterprint",()=>{delete document.body.dataset.print});
 
 $("#b-name").oninput=e=>{B.name=e.target.value;upd()};
